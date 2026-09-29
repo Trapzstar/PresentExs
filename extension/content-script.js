@@ -110,17 +110,27 @@ function prevSlide() {
 }
 
 function startPresentation() {
-  saveCache();
-  const pid = getPresentationId();
-  if (!pid) return false;
-  location.href = `https://docs.google.com/presentation/d/${pid}/present`;
+  console.log('[presentExs] Request present fullscreen');
+  saveCache();  // cache slide IDs dulu
+  chrome.runtime.sendMessage({ type: 'PRESENT_FULLSCREEN' }, (res) => {
+    if (chrome.runtime.lastError) {
+      console.warn('[presentExs] Present error:', chrome.runtime.lastError);
+    } else {
+      console.log('[presentExs] Present response:', res);
+    }
+  });
   return true;
 }
 
 function exitPresentation() {
-  const pid = getPresentationId();
-  if (!pid) return false;
-  location.href = `https://docs.google.com/presentation/d/${pid}/edit`;
+  console.log('[presentExs] Request exit fullscreen');
+  chrome.runtime.sendMessage({ type: 'EXIT_FULLSCREEN' }, (res) => {
+    if (chrome.runtime.lastError) {
+      console.warn('[presentExs] Exit error:', chrome.runtime.lastError);
+    } else {
+      console.log('[presentExs] Exit response:', res);
+    }
+  });
   return true;
 }
 
