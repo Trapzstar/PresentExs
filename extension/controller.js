@@ -240,7 +240,7 @@ async function startListening() {
 
 function scheduleTranscription() {
   if (transcriptionTimer) clearTimeout(transcriptionTimer);
-  transcriptionTimer = setTimeout(runTranscription, 2500);
+  transcriptionTimer = setTimeout(runTranscription, 1200);
 }
 
 async function runTranscription() {
@@ -261,14 +261,14 @@ async function runTranscription() {
     const rms = Math.sqrt(sumSq / merged.length);
 
     // Hanya transkripsi jika durasi cukup & ada suara
-    if (durationSec > 0.4 && rms > 0.005) {
+    if (durationSec > 0.4 && rms > 0.003) {
       try {
         const result = await transcriber(merged, {
           language: 'indonesian',
           task: 'transcribe',
           initial_prompt: INITIAL_PROMPT,
-          chunk_length_s: 30,
-          stride_length_s: 5
+          // chunk_length_s: 30,     ← comment, default 30 sudah cukup
+          // stride_length_s: 5      ← comment, hanya perlu untuk audio panjang
         });
 
         const text = (result && result.text ? result.text : '').trim();

@@ -1273,64 +1273,72 @@ async function startRecognition() {
     return;
   }
 
-  recognition = new VoiceSR();
-  recognition.lang = 'id-ID';
-  recognition.continuous = true;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+    recognition = new VoiceSR();
+    recognition.lang = 'id-ID';
+    recognition.continuous = true;
+    recognition.interimResults = true;      // ← UBAH jadi TRUE
+    recognition.maxAlternatives = 1;
 
-  recognition.onstart = () => {
-    voiceListening = true;
-    updateStatusText();
-  };
+    let lastCommandTime = 0;
+    const COMMAND_COOLDOWN = 800;           // ms, cegah dobel trigger
 
-  recognition.onresult = (e) => {
-    const last = e.results.length - 1;
-    const text = e.results[last][0].transcript.trim();
-
-    if (settings.subtitle && conn && conn.open) {
-      try { conn.send({ type: 'subtitle', text }); } catch (err) {}
-    }
-
-    const action = matchCommand(text);
-    if (action) {
-      send(action);
-      if (settings.showStatus) {
-        setStatus('➡ ' + action, 'ok');
-        setTimeout(updateStatusText, 1200);
+    recognition.onresult = (e) => {
+      // Gabung interim + final
+      let interimText = '';
+      let finalText = '';
+      
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const transcript = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalText += transcript;
+        else interimText += transcript;
       }
-    } else if (settings.showStatus && text) {
-      setStatus('"' + text + '"', 'heard');
-    }
-  };
-
-  recognition.onerror = (e) => {
-    console.warn('[SR] Error:', e.error);
-    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-      voiceListening = false;
-      settings.voiceCommand = false;
-      settings.subtitle = false;
-      applySettingsToUI();
-      saveSettings();
-      setStatus('Izin mikrofon ditolak', 'err');
-    } else if (e.error === 'no-speech' || e.error === 'aborted') {
-      // auto-restart
-    } else if (e.error === 'audio-capture') {
-      setStatus('Mikrofon tidak dapat diakses', 'err');
-    } else if (e.error === 'network') {
-      setStatus('Butuh internet untuk pengenalan suara', 'err');
-    }
-  };
-
-  recognition.onend = () => {
-    if (voiceListening) {
-      setTimeout(() => {
-        if (voiceListening && recognition) {
-          try { recognition.start(); } catch (e) {}
+      
+      const text = (finalText || interimText).trim();
+      if (!text) return;
+      
+      // Kirim subtitle realtime (interim juga)
+      if (settings.subtitle && conn && conn.open) {
+        try { conn.send({ type: 'subtitle', text }); } catch (err) {}
+      }
+      
+      // Match command — bisa dari interim result!
+      const now = Date.now();
+      if (now - lastCommandTime < COMMAND_COOLDOWN) return;
+      
+      const action = matchCommand(text);
+      if (action) {
+        lastCommandTime = now;
+        send(action);
+        if (settings.showStatus) {
+          setStatus('➡ ' + action, 'ok');
+          setTimeout(updateStatusText, 1000);
         }
-      }, 300);
-    }
-  };
+      } else if (settings.showStatus && finalText) {
+        setStatus('"' + finalText + '"', 'heard');
+      }
+    };
+
+    recognition.onerror = (e) => {
+      console.warn('[SR] Error:', e.error);
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        voiceListening = false;
+        settings.voiceCommand = false;
+        settings.subtitle = false;
+        applySettingsToUI();
+        saveSettings();
+        setStatus('Izin mikrofon ditolak', 'err');
+      }
+    };
+
+    recognition.onend = () => {
+      if (voiceListening) {
+        setTimeout(() => {
+          if (voiceListening && recognition) {
+            try { recognition.start(); } catch (e) {}
+          }
+        }, 100);                              // ← UBAH dari 300 ke 100ms
+      }
+    };
 
   try {
     recognition.start();
