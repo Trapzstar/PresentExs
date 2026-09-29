@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#ECF0F3">
+<script src="config.example.js"></script>
+<script src="config.local.js" onerror="void 0"></script>
+<title>Remote Slides</title>
+<style>
+/* ============================================================
+   THEME VARIABLES
+   ============================================================ */
+:root {
+  --bg: #ECF0F3;
+  --text: #2D3436;
+  --text-secondary: #5F6368;
+  --text-muted: #9AA0A6;
+
+  --shadow-dark: rgba(163, 177, 198, 0.6);
+  --shadow-light: rgba(255, 255, 255, 0.9);
+
+  --shadow-out:
+    6px 6px 12px var(--shadow-dark),
+    -6px -6px 12px var(--shadow-light);
+  --shadow-out-sm:
+    3px 3px 6px var(--shadow-dark),
+    -3px -3px 6px var(--shadow-light);
+  --shadow-out-xs:
+    2px 2px 4px var(--shadow-dark),
+    -2px -2px 4px var(--shadow-light);
+  --shadow-in:
+    inset 3px 3px 6px var(--shadow-dark),
+    inset -3px -3px 6px var(--shadow-light);
+  --shadow-in-lg:
+    inset 6px 6px 12px var(--shadow-dark),
+    inset -6px -6px 12px var(--shadow-light);
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --accent: #FF8A4C;
+  --accent-text: #ffffff;
+  --danger: #FF5C5C;
+}
+
+[data-theme="dark"] {
+  --bg: #1E2024;
+  --text: #E8EAED;
+  --text-secondary: #B0B3B8;
+  --text-muted: #6E7175;
+
+  --shadow-dark: rgba(0, 0, 0, 0.5);
+  --shadow-light: rgba(255, 255, 255, 0.04);
+}
+
+[data-accent="orange"] { --accent: #FF8A4C; }
+[data-accent="mint"]   { --accent: #34D399; }
+[data-accent="sky"]    { --accent: #38BDF8; }
+[data-accent="violet"] { --accent: #A78BFA; }
+[data-accent="rose"]   { --accent: #FB7185; }
+
+/* ============================================================
+   BASE
+   ============================================================ */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  transition: background 0.3s, color 0.3s;
+  user-select: none;
+}
+
+/* ============================================================
+   SCREEN SYSTEM
+   ============================================================ */
+.screen {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  padding: 16px;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.screen.active { display: flex; }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+.app-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+.header-spacer { width: 42px; }
+.icon-btn {
+  width: 42px; height: 42px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: var(--shadow-out-sm);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.1s;
+  font-family: inherit;
+}
+.icon-btn:active { box-shadow: var(--shadow-in); }
+
+/* ============================================================
+   NAV BUTTONS
+   ============================================================ */
+.nav-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+.nav-btn {
+  padding: 28px 0;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 48px;
+  cursor: pointer;
+  box-shadow: var(--shadow-out);
+  transition: all 0.08s;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 300;
+  font-family: inherit;
+}
+.nav-btn:active {
+  box-shadow: var(--shadow-in);
+  transform: scale(0.98);
+}
+
+/* ============================================================
+   ACTION BUTTONS
+   ============================================================ */
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+.action-btn {
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+  transition: all 0.1s;
+  font-family: inherit;
+}
+.action-btn.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.action-btn.primary:active {
+  box-shadow:
+    inset 4px 4px 8px rgba(0,0,0,0.2),
+    inset -2px -2px 4px rgba(255,255,255,0.1);
+  transform: scale(0.98);
+}
+.action-btn.danger {
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg) 82%);
+  color: color-mix(in srgb, var(--accent) 70%, var(--text) 30%);
+  box-shadow: var(--shadow-out-sm);
+}
+.action-btn.danger:active {
+  box-shadow: var(--shadow-in);
+  transform: scale(0.98);
+}
+
+/* ============================================================
+   CARD
+   ============================================================ */
+.card {
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-out-sm);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.card-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+/* ============================================================
+   TOGGLE ROW
+   ============================================================ */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px;
+  cursor: pointer;
+}
+.toggle-row + .toggle-row {
+  border-top: 1px solid rgba(128,128,128,0.1);
+}
+.toggle-label {
+  font-size: 15px;
+  color: var(--text);
+  display: flex; align-items: center; gap: 10px;
+}
+.toggle-switch {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  background: var(--bg);
+  border-radius: 15px;
+  box-shadow: var(--shadow-in);
+  transition: all 0.25s;
+  flex-shrink: 0;
+}
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  background: var(--bg);
+  border-radius: 50%;
+  top: 4px;
+  left: 4px;
+  box-shadow: var(--shadow-out-sm);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.toggle-row input[type="checkbox"] { display: none; }
+.toggle-row input[type="checkbox"]:checked + .toggle-switch {
+  background: var(--accent);
+}
+.toggle-row input[type="checkbox"]:checked + .toggle-switch::after {
+  left: 26px;
+  background: #ffffff;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+}
+
+/* ============================================================
+   STATUS BAR
+   ============================================================ */
+.status-bar {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  box-shadow: var(--shadow-in);
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+.status-bar.ok {
+  color: var(--accent);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg) 92%);
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent 80%);
+}
+.status-bar.ok .status-dot {
+  background: var(--accent);
+  border: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent 80%);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+.status-bar.heard {
+  color: var(--text);
+  font-style: italic;
+}
+.status-bar.heard .status-dot {
+  background: var(--accent);
+  border: none;
+  animation: pulse 0.6s ease-in-out infinite;
+}
+.status-bar.err {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, var(--bg) 92%);
+  border-color: color-mix(in srgb, var(--danger) 20%, transparent 80%);
+}
+.status-bar.err .status-dot {
+  background: var(--danger);
+  border: none;
+  box-shadow: 0 0 0 3px rgba(255, 92, 92, 0.2);
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+.settings-section { margin-bottom: 20px; }
+.settings-heading {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0 0 12px 4px;
+  font-weight: 600;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px;
+  gap: 12px;
+}
+.settings-row + .settings-row {
+  border-top: 1px solid rgba(128,128,128,0.1);
+}
+.settings-label {
+  font-size: 14px;
+  color: var(--text);
+}
+.text-input {
+  background: var(--bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 10px 14px;
+  font-size: 14px;
+  width: 110px;
+  box-shadow: var(--shadow-in);
+  outline: none;
+  text-align: right;
+  font-family: inherit;
+}
+
+/* ============================================================
+   SLIDER
+   ============================================================ */
+.slider-wrap { padding: 8px 4px 12px; }
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.slider-label { font-size: 14px; color: var(--text); }
+.slider-value {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+input[type="range"].soft-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--bg);
+  box-shadow: var(--shadow-in);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"].soft-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow:
+    2px 2px 6px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+  transition: transform 0.15s;
+}
+input[type="range"].soft-slider::-webkit-slider-thumb:active {
+  transform: scale(1.15);
+}
+input[type="range"].soft-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.25);
+}
+
+/* ============================================================
+   COLOR CHIPS (subtitle bg)
+   ============================================================ */
+.color-chips {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+.color-chip {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-out-sm);
+  border: 2px solid transparent;
+  transition: all 0.15s;
+}
+.color-chip.selected {
+  border-color: var(--text);
+  transform: scale(1.1);
+}
+.color-chip:active { transform: scale(0.95); }
+
+/* ============================================================
+   THEME TOGGLE (settings)
+   ============================================================ */
+.theme-toggle {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  box-shadow: var(--shadow-in);
+}
+.theme-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.theme-btn.active {
+  background: var(--bg);
+  color: var(--accent);
+  box-shadow: var(--shadow-out-xs);
+}
+
+/* Accent chips (settings) */
+.accent-chips {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+.accent-chip {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-out-sm);
+  border: 2px solid transparent;
+  transition: all 0.15s;
+}
+.accent-chip.selected {
+  border-color: var(--text);
+  transform: scale(1.1);
+}
+
+/* ============================================================
+   RESET BUTTON
+   ============================================================ */
+.reset-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--danger);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-out-sm);
+  transition: all 0.1s;
+  font-family: inherit;
+}
+.reset-btn:active { box-shadow: var(--shadow-in); }
+
+/* ============================================================
+   CONNECT SCREEN
+   ============================================================ */
+.connect-screen {
+  text-align: center;
+  padding: 40px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.connect-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+}
+.connect-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+.connect-input {
+  width: 100%;
+  max-width: 280px;
+  padding: 18px;
+  font-size: 32px;
+  letter-spacing: 10px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-in-lg);
+  outline: none;
+  margin: 0 auto 20px;
+  display: block;
+}
+.connect-btn {
+  width: 100%;
+  max-width: 280px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent-text);
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  margin: 0 auto 20px;
+  display: block;
+  font-family: inherit;
+}
+.connect-btn:active {
+  box-shadow: inset 4px 4px 8px rgba(0,0,0,0.2);
+}
+
+/* ============================================================
+   CONNECT: TITLE + TAB SWITCHER
+   ============================================================ */
+.connect-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+/* Tab Switcher */
+.tab-switcher {
+  display: flex;
+  padding: 5px;
+  gap: 4px;
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-in);
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 20px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 11px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  letter-spacing: -0.1px;
+}
+
+.tab-btn.active {
+  background: var(--bg);
+  color: var(--accent);
+  box-shadow: var(--shadow-out-xs);
+}
+
+.tab-btn:active { transform: scale(0.97); }
+
+/* Tab Content */
+.tab-content {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.tab-content.active {
+  display: flex;
+  animation: tabFade 0.25s ease;
+}
+
+@keyframes tabFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   SCAN FRAME + CAMERA
+   ============================================================ */
+.scan-frame {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #000;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-in-lg);
+}
+
+#scanVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Dim overlay outside the scan area */
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Corner brackets */
+.scan-corner {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border: 4px solid var(--accent);
+  border-radius: 4px;
+}
+
+.scan-corner.tl {
+  top: 16px; left: 16px;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: 12px;
+}
+.scan-corner.tr {
+  top: 16px; right: 16px;
+  border-left: none;
+  border-bottom: none;
+  border-top-right-radius: 12px;
+}
+.scan-corner.bl {
+  bottom: 16px; left: 16px;
+  border-right: none;
+  border-top: none;
+  border-bottom-left-radius: 12px;
+}
+.scan-corner.br {
+  bottom: 16px; right: 16px;
+  border-left: none;
+  border-top: none;
+  border-bottom-right-radius: 12px;
+}
+
+/* Scan line animation */
+.scan-line {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent),
+    transparent
+  );
+  box-shadow: 0 0 12px var(--accent);
+  top: 16px;
+  animation: scanMove 2.2s ease-in-out infinite;
+  opacity: 0.9;
+}
+
+@keyframes scanMove {
+  0%, 100% { top: 16px; }
+  50%      { top: calc(100% - 20px); }
+}
+
+/* Hint */
+.scan-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 14px;
+  padding: 0 20px;
+  line-height: 1.5;
+  transition: color 0.2s;
+}
+
+.scan-hint.error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.scan-hint.success {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Scan toggle button */
+.btn-scan-toggle {
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-out-sm);
+  transition: all 0.1s;
+  font-family: inherit;
+  margin-bottom: 4px;
+}
+
+.btn-scan-toggle:active {
+  box-shadow: var(--shadow-in);
+  transform: scale(0.97);
+}
+
+/* ============================================================
+   REMOTE SUBTITLE OVERLAY (viewer)
+   ============================================================ */
+#remoteSubtitleEl {
+  position: fixed;
+  bottom: 5%;
+  left: 3%;
+  right: 3%;
+  text-align: center;
+  pointer-events: none;
+  z-index: 2147483647;
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  transition: opacity 0.2s;
+  display: none;
+}
+#remoteSubtitleEl > span {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.hidden { display: none !important; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+
+<!-- ============================================================
+     SCREEN: CONNECT
+     ============================================================ -->
+<!-- ============================================================
+     SCREEN: CONNECT (Scan QR + Manual Code)
+     ============================================================ -->
+<div class="screen active" id="screenConnect">
+  <div class="connect-screen">
+    <div class="connect-icon">📡</div>
+    <div class="connect-title">Hubungkan ke PC</div>
+    <div class="connect-subtitle">
+      Scan QR code dari jendela Remote di PC,<br>
+      atau masukkan kode 6 digit
+    </div>
+
+    <!-- Tab Switcher -->
+    <div class="tab-switcher" id="tabSwitcher">
+      <button class="tab-btn active" data-tab="scan">📷 Scan</button>
+      <button class="tab-btn" data-tab="manual">⌨️ Kode</button>
+    </div>
+
+    <!-- Tab: Scan -->
+    <div class="tab-content active" id="tabScan">
+      <div class="scan-frame" id="scanFrame">
+        <video id="scanVideo" autoplay playsinline muted></video>
+
+        <!-- Overlay with corner brackets -->
+        <div class="scan-overlay">
+          <div class="scan-corner tl"></div>
+          <div class="scan-corner tr"></div>
+          <div class="scan-corner bl"></div>
+          <div class="scan-corner br"></div>
+          <div class="scan-line" id="scanLine"></div>
+        </div>
+      </div>
+
+      <div class="scan-hint" id="scanHint">
+        Arahkan kamera ke QR code
+      </div>
+
+      <button class="btn-scan-toggle" id="btnScanToggle">
+        ⏸ Hentikan Kamera
+      </button>
+    </div>
+
+    <!-- Tab: Manual Code -->
+    <div class="tab-content" id="tabManual">
+      <input
+        type="tel"
+        id="roomInput"
+        class="connect-input"
+        inputmode="numeric"
+        maxlength="6"
+        placeholder="000000"
+        autocomplete="off"
+      >
+      <button id="connectBtn" class="connect-btn">Hubungkan</button>
+    </div>
+
+    <!-- Status -->
+    <div class="status-bar" id="connectStatus">
+      <span class="status-dot"></span>
+      <span>Belum terhubung</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: MAIN
+     ============================================================ -->
+<div class="screen" id="screenMain">
+  <div class="app-header">
+    <h1 class="app-title">Remote Slides</h1>
+    <button class="icon-btn" id="btnSettings" title="Pengaturan">⚙️</button>
+  </div>
+
+  <div class="nav-row" id="navRow">
+    <button class="nav-btn" id="btnPrev">←</button>
+    <button class="nav-btn" id="btnNext">→</button>
+  </div>
+
+  <div class="action-row" id="actionRow">
+    <button class="action-btn primary" id="btnPresent">Mulai</button>
+    <button class="action-btn danger" id="btnExit">Keluar</button>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Fitur Aktif</p>
+
+    <label class="toggle-row">
+      <span class="toggle-label">🎤 Voice Command</span>
+      <input type="checkbox" id="toggleVoice">
+      <span class="toggle-switch"></span>
+    </label>
+
+    <label class="toggle-row">
+      <span class="toggle-label">📝 Subtitle</span>
+      <input type="checkbox" id="toggleSubtitle">
+      <span class="toggle-switch"></span>
+    </label>
+  </div>
+
+  <div class="status-bar" id="status">
+    <span class="status-dot"></span>
+    <span>Tidak ada fitur aktif</span>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: SETTINGS
+     ============================================================ -->
+<div class="screen" id="screenSettings">
+  <div class="app-header">
+    <button class="icon-btn" id="btnBack">←</button>
+    <h1 class="app-title">Pengaturan</h1>
+    <div class="header-spacer"></div>
+  </div>
+
+  <!-- Voice Command -->
+  <div class="settings-section">
+    <p class="settings-heading">🎤 Voice Command</p>
+    <div class="card">
+      <label class="toggle-row">
+        <span class="toggle-label">Wake Word</span>
+        <input type="checkbox" id="setWakeWord">
+        <span class="toggle-switch"></span>
+      </label>
+      <div class="settings-row">
+        <span class="settings-label">Kata pemicu</span>
+        <input type="text" id="setWakeWordText" class="text-input" value="slide" maxlength="15">
+      </div>
+    </div>
+  </div>
+
+  <!-- Subtitle -->
+  <div class="settings-section">
+    <p class="settings-heading">📝 Subtitle</p>
+    <div class="card">
+      <div class="slider-wrap">
+        <div class="slider-header">
+          <span class="slider-label">Opacity background</span>
+          <span class="slider-value" id="setOpacityValue">75%</span>
+        </div>
+        <input type="range" id="setOpacity" class="soft-slider" min="0" max="100" value="75">
+      </div>
+
+      <div class="settings-row" style="border-top:1px solid rgba(128,128,128,0.1);">
+        <span class="settings-label">Warna background</span>
+      </div>
+
+      <div class="color-chips" id="colorChips">
+        <div class="color-chip selected" data-color="black" style="background:#000;"></div>
+        <div class="color-chip" data-color="white" style="background:#fff; box-shadow: var(--shadow-out-sm), inset 0 0 0 1px rgba(0,0,0,0.1);"></div>
+        <div class="color-chip" data-color="blue" style="background:#1a73e8;"></div>
+        <div class="color-chip" data-color="green" style="background:#34a853;"></div>
+        <div class="color-chip" data-color="red" style="background:#ea4335;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tema -->
+  <div class="settings-section">
+    <p class="settings-heading">🎨 Tema</p>
+    <div class="card">
+      <div class="settings-row">
+        <span class="settings-label">Mode</span>
+        <div class="theme-toggle">
+          <button class="theme-btn active" data-theme-btn="light">☀️</button>
+          <button class="theme-btn" data-theme-btn="dark">🌙</button>
+        </div>
+      </div>
+      <div class="settings-row" style="border-top:1px solid rgba(128,128,128,0.1);">
+        <span class="settings-label">Warna aksen</span>
+      </div>
+      <div class="accent-chips" id="accentChips">
+        <div class="accent-chip selected" data-accent-color="orange" style="background:#FF8A4C;"></div>
+        <div class="accent-chip" data-accent-color="mint" style="background:#34D399;"></div>
+        <div class="accent-chip" data-accent-color="sky" style="background:#38BDF8;"></div>
+        <div class="accent-chip" data-accent-color="violet" style="background:#A78BFA;"></div>
+        <div class="accent-chip" data-accent-color="rose" style="background:#FB7185;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tampilan -->
+  <div class="settings-section">
+    <p class="settings-heading">🖥️ Tampilan</p>
+    <div class="card">
+      <label class="toggle-row">
+        <span class="toggle-label">Tombol navigasi</span>
+        <input type="checkbox" id="setShowNav" checked>
+        <span class="toggle-switch"></span>
+      </label>
+      <label class="toggle-row">
+        <span class="toggle-label">Tombol aksi</span>
+        <input type="checkbox" id="setShowAction" checked>
+        <span class="toggle-switch"></span>
+      </label>
+      <label class="toggle-row">
+        <span class="toggle-label">Status bar</span>
+        <input type="checkbox" id="setShowStatus" checked>
+        <span class="toggle-switch"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Reset -->
+  <div class="settings-section">
+    <p class="settings-heading">🔧 Reset</p>
+    <button class="reset-btn" id="btnReset">Reset Semua Setelan</button>
+  </div>
+
+  <div class="status-bar" id="settingsStatus">
+    <span class="status-dot"></span>
+    <span>Setelan tersimpan otomatis</span>
+  </div>
+</div>
+
+<!-- Overlay subtitle viewer -->
+<div id="remoteSubtitleEl"><span id="remoteSubtitleText"></span></div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+// ============================================================
+// State & Konfigurasi
+// ============================================================
+const ROOM_PREFIX = 'gsc-ctrl-';
+
+const DEFAULT_SETTINGS = {
+  voiceCommand: false,
+  subtitle: false,
+  wakeWordEnabled: true,
+  wakeWord: 'slide',
+  subtitleOpacity: 75,
+  subtitleBgColor: 'black',
+  showNav: true,
+  showAction: true,
+  showStatus: true,
+  theme: 'light',
+  accent: 'orange'
+};
+
+let settings = { ...DEFAULT_SETTINGS };
+let peer = null;
+let conn = null;
+let recognition = null;
+let voiceListening = false;
+
+const VoiceSR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const $ = (id) => document.getElementById(id);
+const screenConnect = $('screenConnect');
+const screenMain = $('screenMain');
+const screenSettings = $('screenSettings');
+const statusEl = $('status');
+const statusTextEl = statusEl.querySelector('span:last-child');
+const connectStatus = $('connectStatus');
+const connectStatusTextEl = connectStatus.querySelector('span:last-child');
+const settingsStatus = $('settingsStatus');
+const settingsStatusTextEl = settingsStatus.querySelector('span:last-child');
+
+// ============================================================
+// Settings: load/save
+// ============================================================
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem('gsc-remote-settings');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      settings = { ...DEFAULT_SETTINGS, ...parsed };
+    }
+  } catch (e) {
+    console.warn('[Settings] Load gagal:', e);
+  }
+}
+
+function saveSettings() {
+  try {
+    localStorage.setItem('gsc-remote-settings', JSON.stringify(settings));
+  } catch (e) {
+    console.warn('[Settings] Save gagal:', e);
+  }
+}
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', settings.theme);
+  document.documentElement.setAttribute('data-accent', settings.accent);
+
+  // Theme color meta untuk status bar Android
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) {
+    meta.content = settings.theme === 'dark' ? '#1E2024' : '#ECF0F3';
+  }
+}
+
+function applySettingsToUI() {
+  // Main toggles
+  $('toggleVoice').checked = settings.voiceCommand;
+  $('toggleSubtitle').checked = settings.subtitle;
+
+  // Settings
+  $('setWakeWord').checked = settings.wakeWordEnabled;
+  $('setWakeWordText').value = settings.wakeWord;
+  $('setOpacity').value = settings.subtitleOpacity;
+  $('setOpacityValue').textContent = settings.subtitleOpacity + '%';
+  $('setShowNav').checked = settings.showNav;
+  $('setShowAction').checked = settings.showAction;
+  $('setShowStatus').checked = settings.showStatus;
+
+  // Theme buttons
+  document.querySelectorAll('[data-theme-btn]').forEach(b => {
+    b.classList.toggle('active', b.dataset.themeBtn === settings.theme);
+  });
+
+  // Accent chips
+  document.querySelectorAll('[data-accent-color]').forEach(c => {
+    c.classList.toggle('selected', c.dataset.accentColor === settings.accent);
+  });
+
+  // Subtitle color chips
+  document.querySelectorAll('#colorChips .color-chip').forEach(c => {
+    c.classList.toggle('selected', c.dataset.color === settings.subtitleBgColor);
+  });
+
+  // Visibility
+  $('navRow').classList.toggle('hidden', !settings.showNav);
+  $('actionRow').classList.toggle('hidden', !settings.showAction);
+  statusEl.classList.toggle('hidden', !settings.showStatus);
+
+  applyTheme();
+  updateStatusText();
+}
+
+function setStatus(text, cls = '') {
+  statusTextEl.textContent = text;
+  statusEl.className = 'status-bar' + (cls ? ' ' + cls : '');
+}
+
+function updateStatusText() {
+  const active = [];
+  if (settings.voiceCommand) active.push('🎤 Command');
+  if (settings.subtitle) active.push('📝 Subtitle');
+
+  if (active.length === 0) {
+    setStatus('Tidak ada fitur aktif', '');
+  } else {
+    setStatus(active.join(' + ') + ' aktif', 'ok');
+  }
+}
+
+function setConnectStatus(text, cls = '') {
+  connectStatusTextEl.textContent = text;
+  connectStatus.className = 'status-bar' + (cls ? ' ' + cls : '');
+}
+
+function setSettingsStatus(text, cls = '') {
+  settingsStatusTextEl.textContent = text;
+  settingsStatus.className = 'status-bar' + (cls ? ' ' + cls : '');
+}
+
+// ============================================================
+// Sync settings ke PC
+// ============================================================
+function syncSettingsToPC() {
+  if (!conn || !conn.open) return;
+  try {
+    conn.send({
+      type: 'settings',
+      settings: {
+        subtitleOpacity: settings.subtitleOpacity,
+        subtitleBgColor: settings.subtitleBgColor
+      }
+    });
+  } catch (e) {
+    console.warn('[Sync] Gagal kirim settings:', e);
+  }
+}
+
+// ============================================================
+// Detection command
+// ============================================================
+const COMMANDS = [
+  { patterns: ['lanjut', 'next', 'berikutnya', 'maju', 'kanan'], action: 'next' },
+  { patterns: ['kembali', 'sebelumnya', 'previous', 'mundur', 'kiri'], action: 'prev' },
+  { patterns: ['mulai', 'start', 'presentasi', 'present'], action: 'present' },
+  { patterns: ['keluar', 'exit', 'selesai', 'stop'], action: 'exit' }
+];
+
+function matchBasicCommand(text) {
+  const lower = ' ' + text.toLowerCase().trim() + ' ';
+  for (const cmd of COMMANDS) {
+    for (const p of cmd.patterns) {
+      if (lower.includes(' ' + p + ' ') || lower.includes(' ' + p)) return cmd.action;
+    }
+  }
+  return null;
+}
+
+function matchCommand(text) {
+  if (!settings.voiceCommand) return null;
+
+  const lower = text.toLowerCase().trim();
+  let target = lower;
+
+  if (settings.wakeWordEnabled) {
+    const ww = settings.wakeWord.toLowerCase().trim();
+    if (!ww) return null;
+    const idx = lower.indexOf(ww);
+    if (idx === -1) return null;
+    target = lower.slice(idx + ww.length).trim();
+    if (!target) {
+      target = lower.slice(0, idx).trim();
+    }
+    if (!target) return null;
+  }
+
+  return matchBasicCommand(target);
+}
+
+// ============================================================
+// Speech Recognition
+// ============================================================
+function needsMicrophone() {
+  return settings.voiceCommand || settings.subtitle;
+}
+
+function ensureRecognitionState() {
+  const need = needsMicrophone();
+  if (need && !voiceListening) startRecognition();
+  else if (!need && voiceListening) stopRecognition();
+}
+
+async function requestMic() {
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+    s.getTracks().forEach(t => t.stop());
+    return true;
+  } catch (e) {
+    return e;
+  }
+}
+
+async function startRecognition() {
+  if (!VoiceSR) {
+    setStatus('Browser tidak dukung Voice', 'err');
+    return;
+  }
+  if (voiceListening) return;
+
+  const micResult = await requestMic();
+  if (micResult !== true) {
+    let pesan = 'Izin mikrofon ditolak';
+    if (micResult.name === 'NotAllowedError') {
+      pesan = 'Izin mikrofon ditolak. Cek ikon 🔒 di address bar.';
+    } else if (micResult.name === 'NotFoundError') {
+      pesan = 'Tidak ada mikrofon di HP';
+    }
+    setStatus(pesan, 'err');
+    settings.voiceCommand = false;
+    settings.subtitle = false;
+    applySettingsToUI();
+    saveSettings();
+    return;
+  }
+
+  recognition = new VoiceSR();
+  recognition.lang = 'id-ID';
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = () => {
+    voiceListening = true;
+    updateStatusText();
+  };
+
+  recognition.onresult = (e) => {
+    const last = e.results.length - 1;
+    const text = e.results[last][0].transcript.trim();
+
+    if (settings.subtitle && conn && conn.open) {
+      try { conn.send({ type: 'subtitle', text }); } catch (err) {}
+    }
+
+    const action = matchCommand(text);
+    if (action) {
+      send(action);
+      if (settings.showStatus) {
+        setStatus('➡ ' + action, 'ok');
+        setTimeout(updateStatusText, 1200);
+      }
+    } else if (settings.showStatus && text) {
+      setStatus('"' + text + '"', 'heard');
+    }
+  };
+
+  recognition.onerror = (e) => {
+    console.warn('[SR] Error:', e.error);
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      voiceListening = false;
+      settings.voiceCommand = false;
+      settings.subtitle = false;
+      applySettingsToUI();
+      saveSettings();
+      setStatus('Izin mikrofon ditolak', 'err');
+    } else if (e.error === 'no-speech' || e.error === 'aborted') {
+      // auto-restart
+    } else if (e.error === 'audio-capture') {
+      setStatus('Mikrofon tidak dapat diakses', 'err');
+    } else if (e.error === 'network') {
+      setStatus('Butuh internet untuk pengenalan suara', 'err');
+    }
+  };
+
+  recognition.onend = () => {
+    if (voiceListening) {
+      setTimeout(() => {
+        if (voiceListening && recognition) {
+          try { recognition.start(); } catch (e) {}
+        }
+      }, 300);
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch (e) {
+    console.warn('[SR] Gagal start:', e);
+  }
+}
+
+function stopRecognition() {
+  voiceListening = false;
+  if (recognition) {
+    try { recognition.stop(); } catch (e) {}
+    recognition = null;
+  }
+}
+
+// ============================================================
+// PeerJS
+// ============================================================
+function setScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  if (name === 'connect') screenConnect.classList.add('active');
+  else if (name === 'main') screenMain.classList.add('active');
+  else if (name === 'settings') screenSettings.classList.add('active');
+}
+
+function connectToPC() {
+  const code = $('roomInput').value.trim();
+  if (!/^\d{6}$/.test(code)) {
+    setConnectStatus('Masukkan 6 digit angka', 'err');
+    return;
+  }
+
+  setConnectStatus('Menghubungkan...', '');
+
+  peer = new Peer({
+    debug: 1,
+    config: { iceServers }
+  });
+  
+
+  peer.on('open', () => {
+    conn = peer.connect(ROOM_PREFIX + code, { reliable: true });
+
+    conn.on('open', () => {
+      setScreen('main');
+      localStorage.setItem('gsc-last-room', code);
+      syncSettingsToPC();
+      ensureRecognitionState();
+    });
+
+    conn.on('data', (data) => {
+      if (!data || !data.type) return;
+
+      if (data.type === 'ack') {
+        if (data.success) {
+          setStatus('✅ ' + data.action, 'ok');
+          setTimeout(updateStatusText, 1200);
+        } else {
+          setStatus('❌ ' + (data.error || 'Gagal'), 'err');
+        }
+        return;
+      }
+
+      if (data.type === 'subtitle' && data.text) {
+        showRemoteSubtitle(data.text);
+        return;
+      }
+
+      if (data.type === 'subtitle-off') {
+        hideRemoteSubtitle();
+        return;
+      }
+
+      if (data.type === 'settings' && data.settings) {
+        if (data.settings.subtitleOpacity !== undefined) {
+          settings.subtitleOpacity = data.settings.subtitleOpacity;
+        }
+        if (data.settings.subtitleBgColor !== undefined) {
+          settings.subtitleBgColor = data.settings.subtitleBgColor;
+        }
+        applySettingsToUI();
+        saveSettings();
+        updateRemoteSubtitleStyle();
+        return;
+      }
+
+      if (data.type === 'hello') {
+        console.log('[Remote] Hello dari PC');
+        return;
+      }
+    });
+
+    conn.on('close', () => {
+      setScreen('connect');
+      setConnectStatus('Koneksi terputus', 'err');
+      stopRecognition();
+    });
+
+    conn.on('error', (e) => {
+      console.warn('[Conn] Error:', e);
+    });
+  });
+
+  peer.on('error', (err) => {
+    if (err.type === 'peer-unavailable') {
+      setConnectStatus('Kode tidak ditemukan', 'err');
+    } else {
+      setConnectStatus(err.message, 'err');
+    }
+  });
+}
+
+// ============================================================
+// Kirim aksi
+// ============================================================
+function send(action) {
+  if (!conn || !conn.open) {
+    setStatus('Tidak terhubung', 'err');
+    return;
+  }
+  try { conn.send({ action }); } catch (e) {}
+  if (navigator.vibrate) navigator.vibrate(20);
+}
+
+// ============================================================
+// Remote Subtitle Overlay (untuk HP viewer)
+// ============================================================
+const remoteSubtitleEl = $('remoteSubtitleEl');
+const remoteSubtitleText = $('remoteSubtitleText');
+
+const BG_COLORS_MAP = {
+  black: { rgb: '0, 0, 0', textColor: '#ffffff' },
+  white: { rgb: '255, 255, 255', textColor: '#000000' },
+  blue:  { rgb: '26, 115, 232', textColor: '#ffffff' },
+  green: { rgb: '52, 168, 83', textColor: '#ffffff' },
+  red:   { rgb: '234, 67, 53', textColor: '#ffffff' }
+};
+
+function updateRemoteSubtitleStyle() {
+  const cfg = BG_COLORS_MAP[settings.subtitleBgColor] || BG_COLORS_MAP.black;
+  remoteSubtitleText.style.background = `rgba(${cfg.rgb}, ${settings.subtitleOpacity / 100})`;
+  remoteSubtitleText.style.color = cfg.textColor;
+}
+
+function showRemoteSubtitle(text) {
+  remoteSubtitleText.textContent = text;
+  remoteSubtitleEl.style.display = 'block';
+  updateRemoteSubtitleStyle();
+}
+
+function hideRemoteSubtitle() {
+  remoteSubtitleEl.style.display = 'none';
+}
+
+// ============================================================
+// Events: Main screen
+// ============================================================
+$('btnPrev').addEventListener('click', () => send('prev'));
+$('btnNext').addEventListener('click', () => send('next'));
+$('btnPresent').addEventListener('click', () => send('present'));
+$('btnExit').addEventListener('click', () => send('exit'));
+
+$('toggleVoice').addEventListener('change', (e) => {
+  settings.voiceCommand = e.target.checked;
+  saveSettings();
+  updateStatusText();
+  ensureRecognitionState();
+});
+
+$('toggleSubtitle').addEventListener('change', (e) => {
+  settings.subtitle = e.target.checked;
+  saveSettings();
+  updateStatusText();
+  ensureRecognitionState();
+});
+
+$('btnSettings').addEventListener('click', () => setScreen('settings'));
+$('btnBack').addEventListener('click', () => setScreen('main'));
+
+// ============================================================
+// Events: Settings screen
+// ============================================================
+$('setWakeWord').addEventListener('change', (e) => {
+  settings.wakeWordEnabled = e.target.checked;
+  saveSettings();
+});
+
+$('setWakeWordText').addEventListener('change', (e) => {
+  const v = e.target.value.trim().toLowerCase() || 'slide';
+  settings.wakeWord = v;
+  e.target.value = v;
+  saveSettings();
+});
+
+$('setOpacity').addEventListener('input', (e) => {
+  settings.subtitleOpacity = parseInt(e.target.value, 10);
+  $('setOpacityValue').textContent = settings.subtitleOpacity + '%';
+  saveSettings();
+  syncSettingsToPC();
+  updateRemoteSubtitleStyle();
+});
+
+document.querySelectorAll('#colorChips .color-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#colorChips .color-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    settings.subtitleBgColor = chip.dataset.color;
+    saveSettings();
+    syncSettingsToPC();
+    updateRemoteSubtitleStyle();
+  });
+});
+
+document.querySelectorAll('[data-theme-btn]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    settings.theme = btn.dataset.themeBtn;
+    saveSettings();
+    applySettingsToUI();
+  });
+});
+
+document.querySelectorAll('[data-accent-color]').forEach(chip => {
+  chip.addEventListener('click', () => {
+    settings.accent = chip.dataset.accentColor;
+    saveSettings();
+    applySettingsToUI();
+  });
+});
+
+$('setShowNav').addEventListener('change', (e) => {
+  settings.showNav = e.target.checked;
+  saveSettings();
+  applySettingsToUI();
+});
+
+$('setShowAction').addEventListener('change', (e) => {
+  settings.showAction = e.target.checked;
+  saveSettings();
+  applySettingsToUI();
+});
+
+$('setShowStatus').addEventListener('change', (e) => {
+  settings.showStatus = e.target.checked;
+  saveSettings();
+  applySettingsToUI();
+});
+
+$('btnReset').addEventListener('click', () => {
+  if (!confirm('Reset semua setelan ke default?')) return;
+  settings = { ...DEFAULT_SETTINGS };
+  saveSettings();
+  applySettingsToUI();
+  syncSettingsToPC();
+  updateRemoteSubtitleStyle();
+  setSettingsStatus('Setelan direset', 'ok');
+  setTimeout(() => setSettingsStatus('Setelan tersimpan otomatis', ''), 1500);
+});
+
+// ============================================================
+// Connect button
+// ============================================================
+$('connectBtn').addEventListener('click', connectToPC);
+$('roomInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') connectToPC();
+});
+
+// ============================================================
+// Init
+// ============================================================
+(function init() {
+  loadSettings();
+  applySettingsToUI();
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('room')) {
+    $('roomInput').value = params.get('room');
+    setTimeout(() => connectToPC(), 300);
+  } else {
+    const last = localStorage.getItem('gsc-last-room');
+    if (last) $('roomInput').value = last;
+  }
+})();
+// ============================================================
+// QR SCANNER
+// ============================================================
+(function initQRScanner() {
+  let scanning = false;
+  let stream = null;
+  let rafId = null;
+  let canvas = null;
+  let ctx = null;
+  let lastScanAt = 0;
+
+  const video = document.getElementById('scanVideo');
+  const hint = document.getElementById('scanHint');
+  const toggleBtn = document.getElementById('btnScanToggle');
+  const scanLine = document.getElementById('scanLine');
+  const scanFrame = document.getElementById('scanFrame');
+
+  if (!video || !hint || !toggleBtn) {
+    console.warn('[presentExs] QR scanner: element tidak ditemukan');
+    return;
+  }
+
+  function setHint(text, cls) {
+    hint.textContent = text;
+    hint.className = 'scan-hint' + (cls ? ' ' + cls : '');
+  }
+
+  function extractCodeFromText(text) {
+    if (!text) return null;
+    // Coba cari ?room=XXXXXX
+    try {
+      const url = new URL(text);
+      const room = url.searchParams.get('room');
+      if (room && /^\d{6}$/.test(room)) return room;
+    } catch (e) {
+      // bukan URL, coba langsung
+    }
+    // Cari 6 digit berturut-turut
+    const m = text.match(/\b(\d{6})\b/);
+    if (m) return m[1];
+    return null;
+  }
+
+  function onCodeDetected(code) {
+    console.log('[presentExs] QR code terbaca:', code);
+    setHint('✅ Terhubung! Kode: ' + code, 'success');
+
+    // Isi input manual juga
+    const roomInput = document.getElementById('roomInput');
+    if (roomInput) roomInput.value = code;
+
+    // Getar sebagai feedback
+    if (navigator.vibrate) navigator.vibrate(60);
+
+    // Stop scanning dulu
+    stopCamera();
+
+    // Auto-connect setelah delay pendek
+    setTimeout(() => {
+      if (typeof connectToPC === 'function') {
+        // Pindah ke tab manual agar user lihat kode
+        const manualTab = document.querySelector('[data-tab="manual"]');
+        if (manualTab) manualTab.click();
+        connectToPC();
+      } else if (typeof window.connectToPC === 'function') {
+        window.connectToPC();
+      } else {
+        console.warn('[presentExs] Fungsi connectToPC tidak ditemukan');
+      }
+    }, 400);
+  }
+
+  function scanFrameLoop() {
+    if (!scanning || !video || !canvas) return;
+
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      const w = video.videoWidth;
+      const h = video.videoHeight;
+
+      if (w && h && (canvas.width !== w || canvas.height !== h)) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+
+      // Throttle: scan max 10 fps biar hemat CPU
+      const now = performance.now();
+      if (now - lastScanAt > 100) {
+        lastScanAt = now;
+
+        if (w && h && typeof jsQR === 'function') {
+          ctx.drawImage(video, 0, 0, w, h);
+          const imageData = ctx.getImageData(0, 0, w, h);
+          const qr = jsQR(imageData.data, w, h, { inversionAttempts: 'dontInvert' });
+
+          if (qr && qr.data) {
+            const code = extractCodeFromText(qr.data);
+            if (code) {
+              onCodeDetected(code);
+              return;
+            } else {
+              setHint('QR terbaca tapi bukan kode presentExs', 'error');
+            }
+          }
+        }
+      }
+    }
+
+    rafId = requestAnimationFrame(scanFrameLoop);
+  }
+
+  async function startCamera() {
+    if (scanning) return;
+
+    setHint('Meminta akses kamera...');
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      });
+
+      video.srcObject = stream;
+      await video.play();
+
+      // Buat canvas offscreen
+      if (!canvas) {
+        canvas = document.createElement('canvas');
+        ctx = canvas.getContext('2d', { willReadFrequently: true });
+      }
+
+      scanning = true;
+      toggleBtn.textContent = '⏸ Hentikan Kamera';
+      scanLine.style.display = 'block';
+      setHint('Arahkan kamera ke QR code');
+
+      rafId = requestAnimationFrame(scanFrameLoop);
+      console.log('[presentExs] Camera started');
+    } catch (e) {
+      console.error('[presentExs] Camera error:', e);
+
+      let msg = 'Gagal akses kamera';
+      if (e.name === 'NotAllowedError') {
+        msg = 'Izin kamera ditolak. Aktifkan di pengaturan browser.';
+      } else if (e.name === 'NotFoundError') {
+        msg = 'Tidak ada kamera terdeteksi.';
+      } else if (e.name === 'NotReadableError') {
+        msg = 'Kamera sedang dipakai aplikasi lain.';
+      } else if (e.message) {
+        msg = 'Gagal: ' + e.message;
+      }
+
+      setHint(msg, 'error');
+      scanning = false;
+      toggleBtn.textContent = '▶️ Coba Lagi';
+      scanLine.style.display = 'none';
+    }
+  }
+
+  function stopCamera() {
+    scanning = false;
+
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    if (stream) {
+      stream.getTracks().forEach((t) => t.stop());
+      stream = null;
+    }
+
+    if (video) video.srcObject = null;
+    scanLine.style.display = 'none';
+    toggleBtn.textContent = '▶️ Mulai Scan';
+  }
+
+  // ============================================================
+  // TAB SWITCHER
+  // ============================================================
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+
+      tabBtns.forEach((b) => b.classList.toggle('active', b === btn));
+      tabContents.forEach((c) => {
+        const match = c.id === 'tab' + target.charAt(0).toUpperCase() + target.slice(1);
+        c.classList.toggle('active', match);
+      });
+
+      // Auto start/stop camera
+      if (target === 'scan') {
+        startCamera();
+      } else {
+        stopCamera();
+      }
+    });
+  });
+
+  // ============================================================
+  // TOGGLE BUTTON
+  // ============================================================
+  toggleBtn.addEventListener('click', () => {
+    if (scanning) stopCamera();
+    else startCamera();
+  });
+
+  // ============================================================
+  // AUTO-START — hanya jika tab scan aktif saat init
+  // ============================================================
+  const activeTab = document.querySelector('.tab-btn.active');
+  if (activeTab && activeTab.dataset.tab === 'scan') {
+    // Delay dikit biar halaman stabil
+    setTimeout(startCamera, 600);
+  }
+
+  // Cleanup saat tab browser ditutup
+  window.addEventListener('beforeunload', stopCamera);
+})();
+
+</script>
+</body>
+</html>

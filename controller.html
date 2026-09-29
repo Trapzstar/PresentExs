@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Kontrol Suara — presentExs</title>
+<style>
+:root {
+  --bg: #ECF0F3;
+  --text: #2D3436;
+  --text-secondary: #5F6368;
+  --text-muted: #9AA0A6;
+  --shadow-dark: rgba(163, 177, 198, 0.6);
+  --shadow-light: rgba(255, 255, 255, 0.9);
+  --shadow-out-sm: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+  --shadow-out: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+  --shadow-in: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+  --accent: #FF8A4C;
+  --accent-text: #fff;
+  --danger: #FF5C5C;
+  --success: #34D399;
+  --warning: #F59E0B;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  margin: 0; padding: 14px;
+  background: var(--bg); color: var(--text);
+  font-size: 13px; overflow-y: auto;
+}
+
+h3 {
+  margin: 0 0 14px; font-size: 15px; color: var(--text);
+  display: flex; align-items: center; gap: 8px; font-weight: 700;
+}
+
+label.mini {
+  font-size: 11px; color: var(--text-muted);
+  display: block; margin-bottom: 4px;
+}
+
+select, input.text-input {
+  width: 100%; padding: 10px 12px;
+  background: var(--bg); color: var(--text);
+  border: none; border-radius: 10px;
+  box-shadow: var(--shadow-in);
+  font-size: 13px; font-family: inherit;
+  outline: none; margin-bottom: 10px;
+}
+
+.row { display: flex; gap: 8px; margin-bottom: 10px; }
+.row > * { flex: 1; }
+
+button {
+  padding: 12px 14px; border: none; border-radius: 12px;
+  background: var(--bg); color: var(--text);
+  font-size: 13px; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+  box-shadow: var(--shadow-out-sm);
+  transition: all 0.1s;
+}
+button:active { box-shadow: var(--shadow-in); transform: scale(0.98); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+button.primary {
+  background: var(--accent); color: var(--accent-text);
+  box-shadow: 0 4px 12px rgba(255, 138, 76, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+button.danger {
+  background: var(--danger); color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 92, 92, 0.35);
+}
+button.train {
+  background: linear-gradient(135deg, #FBBF24, #F59E0B); color: #fff;
+}
+
+.status-box {
+  background: var(--bg); border-radius: 12px; padding: 10px 12px;
+  box-shadow: var(--shadow-in); margin-bottom: 10px;
+  font-size: 12px; line-height: 1.7;
+}
+
+.indicator {
+  display: inline-block; width: 9px; height: 9px;
+  border-radius: 50%; background: var(--text-muted);
+  margin-right: 6px; vertical-align: middle;
+}
+.indicator.on   { background: var(--success); animation: pulse 1.2s infinite; }
+.indicator.busy { background: var(--warning); animation: pulse 1s infinite; }
+.indicator.err  { background: var(--danger); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.heard {
+  background: var(--bg); border-radius: 12px; padding: 10px 12px;
+  box-shadow: var(--shadow-in); margin-bottom: 10px;
+  min-height: 60px; max-height: 140px; overflow-y: auto;
+  font-size: 12px; color: var(--accent); word-break: break-word;
+  font-family: 'Courier New', monospace;
+}
+.heard .entry { margin-bottom: 2px; }
+.heard .action { color: var(--success); font-weight: bold; }
+.heard .err { color: var(--danger); }
+
+.commands {
+  font-size: 11px; color: var(--text-muted); line-height: 1.7;
+  border-top: 1px solid rgba(128,128,128,0.15);
+  padding-top: 10px; margin-top: 10px;
+}
+.commands b { color: var(--text); }
+
+.train-status {
+  font-size: 11px; color: var(--warning);
+  margin-top: 4px; min-height: 14px;
+}
+</style>
+</head>
+<body>
+  <h3>🎤 Kontrol Suara</h3>
+
+  <label class="mini">Model Whisper</label>
+  <select id="modelSelect" disabled>
+    <option value="Xenova/whisper-tiny">Tiny — cepat, kurang akurat (~40 MB)</option>
+    <option value="Xenova/whisper-base" selected>Base — seimbang (~140 MB)</option>
+    <option value="Xenova/whisper-small">Small — paling akurat (~480 MB)</option>
+  </select>
+
+  <div class="row">
+    <button id="toggleBtn" class="primary" disabled>⏳ Memuat...</button>
+    <button id="clearBtn">Bersihkan</button>
+  </div>
+
+  <div class="row">
+    <button id="trainBtn" class="train" disabled>🎓 Latih Kata Terakhir</button>
+  </div>
+  <div class="train-status" id="trainStatus"></div>
+
+  <div class="status-box">
+    <div><span class="indicator" id="micInd"></span><span id="micStatus">Cek izin...</span></div>
+    <div><span class="indicator busy" id="recInd"></span><span id="recStatus">Memuat model...</span></div>
+  </div>
+
+  <div class="heard" id="heard">(Yang terdengar akan tampil di sini)</div>
+
+  <div class="commands">
+    <b>Perintah:</b><br>
+    • <b>lanjut / next</b> → slide berikutnya<br>
+    • <b>kembali / previous</b> → slide sebelumnya<br>
+    • <b>mulai / present</b> → mulai presentasi<br>
+    • <b>keluar / exit</b> → keluar presentasi
+  </div>
+
+  <script type="module" src="controller.js"></script>
+</body>
+</html>

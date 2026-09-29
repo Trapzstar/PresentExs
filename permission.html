@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Izin Mikrofon</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 32px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      max-width: 460px;
+      text-align: center;
+    }
+    h2 { margin: 0 0 12px; color: #1a73e8; }
+    p { color: #555; line-height: 1.6; margin: 8px 0; }
+    .status {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #f0f0f0;
+      color: #333;
+    }
+    .status.ok { background: #e6f4ea; color: #1e7e34; }
+    .status.err { background: #fce8e6; color: #c5221f; }
+    button {
+      margin-top: 16px;
+      padding: 10px 24px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      background: #1a73e8;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #1557b0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🎤 Izin Mikrofon</h2>
+    <p>Ekstensi <b>Google Slides Controller</b> memerlukan akses mikrofon untuk kontrol suara.</p>
+    <p>Klik tombol di bawah ini, lalu pilih <b>"Allow" / "Izinkan"</b> pada prompt browser.</p>
+    <button id="reqBtn">Minta Izin Mikrofon</button>
+    <div class="status" id="status">Menunggu...</div>
+  </div>
+  <script src="permission.js"></script>
+</body>
+</html>

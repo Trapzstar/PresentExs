@@ -1,0 +1,47 @@
+# ===== Config Lokal (SENSITIF) =====
+config.local.js
+config.local.*
+.env
+.env.*
+!.env.example
+!config.example.js
+
+# ===== Extension Signing =====
+*.crx
+*.crx.key
+extension-key.pem
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ===== Build & Dependencies =====
+node_modules/
+dist/
+build/
+out/
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== OS & IDE =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== Cache & Temp =====
+.cache/
+.temp/
+.tmp/
+*.zip
+repomix-output.xml
+
+# ===== Testing & Personal =====
+test-files/
+playground/
+*.local

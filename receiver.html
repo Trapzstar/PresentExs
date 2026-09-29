@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Remote HP — presentExs</title>
+<style>
+:root {
+  --bg: #ECF0F3;
+  --text: #2D3436;
+  --text-secondary: #5F6368;
+  --text-muted: #9AA0A6;
+  --shadow-dark: rgba(163, 177, 198, 0.6);
+  --shadow-light: rgba(255, 255, 255, 0.9);
+  --shadow-out-sm: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+  --shadow-in: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+  --shadow-in-lg: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);
+  --accent: #FF8A4C;
+  --accent-text: #fff;
+  --success: #34D399;
+  --danger: #FF5C5C;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  margin: 0; padding: 16px;
+  background: var(--bg); color: var(--text);
+  text-align: center;
+  font-size: 13px;
+}
+
+h3 {
+  margin: 0 0 14px; font-size: 15px; color: var(--text);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-weight: 700;
+}
+
+.code-box {
+  background: var(--bg); border-radius: 16px;
+  padding: 14px; margin-bottom: 14px;
+  box-shadow: var(--shadow-in-lg);
+}
+.code-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
+.code {
+  font-family: 'Courier New', monospace;
+  font-size: 34px; font-weight: 700;
+  letter-spacing: 8px;
+  color: var(--accent);
+}
+
+#qr {
+  width: 200px; height: 200px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px;
+  margin: 0 auto 14px;
+  display: block;
+  box-shadow: var(--shadow-out-sm);
+}
+
+.status {
+  background: var(--bg); border-radius: 12px;
+  padding: 10px 12px; font-size: 12px;
+  margin-bottom: 10px; min-height: 18px;
+  box-shadow: var(--shadow-in);
+  color: var(--text-secondary);
+}
+.status.ok  { color: var(--success); }
+.status.err { color: var(--danger); }
+
+.log {
+  background: var(--bg); border-radius: 12px;
+  padding: 10px 12px; font-size: 11px;
+  color: var(--text-muted); text-align: left;
+  max-height: 100px; overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  box-shadow: var(--shadow-in);
+}
+
+.hint {
+  font-size: 11px; color: var(--text-muted);
+  margin-top: 12px; line-height: 1.6;
+}
+</style>
+</head>
+<body>
+  <h3>📱 Remote Control HP</h3>
+
+  <div class="code-box">
+    <div class="code-label">Kode Room</div>
+    <div class="code" id="roomCode">------</div>
+  </div>
+
+  <img id="qr" alt="QR Code" />
+
+  <div class="status" id="status">Menunggu...</div>
+
+  <div class="log" id="log">Log akan muncul di sini...</div>
+
+  <div class="hint">
+    Scan QR di HP, atau buka URL remote di HP lalu masukkan kode di atas.
+  </div>
+  
+  <script src="config.example.js"></script>
+  <script src="config.local.js" onerror="void 0"></script>
+  <script src="peerjs.min.js"></script>
+  <script src="receiver.js"></script>
+</body>
+</body>
+</html>
