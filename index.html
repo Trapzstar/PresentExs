@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#ECF0F3">
-<script src="config.example.js"></script>
-<script src="config.local.js" onerror="void 0"></script>
+<script>
+  window.PRESENTEXS_CONFIG = {
+    ICE_SERVERS: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+  };
+</script>
 <title>Remote Slides</title>
 <style>
 /* ============================================================
@@ -1359,6 +1365,11 @@ function connectToPC() {
   }
 
   setConnectStatus('Menghubungkan...', '');
+
+  const CFG = window.PRESENTEXS_CONFIG || {};
+  const iceServers = CFG.ICE_SERVERS || [
+    { urls: 'stun:stun.l.google.com:19302' }
+  ];
 
   peer = new Peer({
     debug: 1,
